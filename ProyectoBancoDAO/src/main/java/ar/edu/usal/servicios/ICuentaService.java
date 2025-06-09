@@ -5,6 +5,9 @@ import java.util.List;
 
 public interface ICuentaService {
     void registrarCuenta(Cuenta cuenta);
+    void eliminarCuenta(Cuenta cuenta);
+    List<Cuenta> buscarPorCuit(String cuit);
     Cuenta buscarPorCbu(String cbu);
+    Cuenta buscarPorDireccion(String direccion);
     List<Cuenta> listarTodas();
 }

@@ -12,6 +12,7 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
 
     public ClienteDAOImpl(String path) {
         super(path);
+        System.out.println("ClienteDAOImpl cargando desde: " + new File(path).getAbsolutePath());
     }
 
     @Override
@@ -37,11 +38,15 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
         try (BufferedReader reader = new BufferedReader(new FileReader(archivo))) {
             String linea;
             while ((linea = reader.readLine()) != null) {
-                // Separar datos del Cliente
                 String[] datos = linea.split(",");
-                // Instanciar Cliente con sus respectivos datos
+
+                // Comunicar si hay una linea mal estructurada
+                if (datos.length != 6) {
+                    System.out.println("Línea inválida: " + linea);
+                    continue;
+                }
+
                 Cliente c = new Cliente(datos[0], datos[1], datos[2], datos[3], datos[4], datos[5]);
-                // Agregar el Cliente a la lista
                 lista.add(c);
             }
         } catch (IOException e) {
@@ -54,4 +59,42 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
     public List<Cliente> obtenerTodos() {
         return leerTodo();
     }
+
+    @Override
+    public void eliminar(String cuit) {
+        List<Cliente> clientes = leerTodo();
+        clientes.removeIf(c -> c.getCuit().equals(cuit));
+        guardarTodos(clientes);
+    }
+
+    @Override
+    public void actualizar(Cliente cliente) {
+        List<Cliente> clientes = leerTodo();
+        for (int i = 0; i < clientes.size(); i++) {
+            if (clientes.get(i).getCuit().equals(cliente.getCuit())) {
+                clientes.set(i, cliente);
+                break;
+            }
+        }
+        guardarTodos(clientes);
+    }
+
+    @Override
+    public void guardarTodos(List<Cliente> clientes) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo, false))) {
+            for (Cliente cliente : clientes) {
+                writer.write(
+                        cliente.getCuit() + "," +
+                                cliente.getNombre() + "," +
+                                cliente.getApellido() + "," +
+                                cliente.getTelefono() + "," +
+                                cliente.getEmail() + "," +
+                                cliente.getDomicilio());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

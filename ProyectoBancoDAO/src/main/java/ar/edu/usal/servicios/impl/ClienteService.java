@@ -5,6 +5,7 @@ import ar.edu.usal.modelo.persistencia.dao.ClienteDAO;
 import ar.edu.usal.modelo.persistencia.factory.DAOFactory;
 import ar.edu.usal.servicios.IClienteService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteService implements IClienteService {
@@ -17,16 +18,25 @@ public class ClienteService implements IClienteService {
     }
 
     @Override
-    public List<Cliente> listarClientes() {
-        return dao.obtenerTodos();
+    public void eliminarCliente(String cuit) {
+        dao.eliminar(cuit);
+    }
+
+    @Override
+    public void modificarCliente(Cliente c) {
+        dao.actualizar(c);
     }
 
     @Override
     public Cliente buscarPorCuit(String cuit) {
-        return dao.obtenerTodos()
-                .stream()
+        return dao.obtenerTodos().stream()
                 .filter(c -> c.getCuit().equals(cuit))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Override
+    public List<Cliente> obtenerTodos() {
+        return dao.obtenerTodos();
     }
 }

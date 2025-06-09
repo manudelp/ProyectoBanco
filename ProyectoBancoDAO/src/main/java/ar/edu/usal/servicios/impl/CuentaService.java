@@ -17,8 +17,24 @@ public class CuentaService implements ICuentaService {
     }
 
     @Override
+    public void eliminarCuenta(Cuenta cuenta) {
+        dao.eliminar(cuenta);
+    }
+
+    @Override
+    public List<Cuenta> buscarPorCuit(String cuit) {
+        return dao.buscarPorCuit(cuit);
+    }
+
+
+    @Override
     public Cuenta buscarPorCbu(String cbu) {
         return dao.buscarPorCbu(cbu);
+    }
+
+    @Override
+    public Cuenta buscarPorDireccion(String direccion) {
+        return dao.buscarPorDireccion(direccion);
     }
 
     @Override
