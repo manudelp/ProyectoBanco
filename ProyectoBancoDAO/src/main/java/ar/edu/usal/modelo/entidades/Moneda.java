@@ -1,5 +1,5 @@
 package ar.edu.usal.modelo.entidades;
 
 public enum Moneda {
-    PESO, DOLAR
+    PESO, DOLAR, BTC, ETH, USDT, ADA, SOL
 }
