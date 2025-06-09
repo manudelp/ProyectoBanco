@@ -96,18 +96,36 @@ public class FormularioAltaCuenta extends JDialog {
         try {
             double saldo = Double.parseDouble(saldoStr);
 
+            if (tipo == null) {
+                JOptionPane.showMessageDialog(this, "Seleccione un tipo de cuenta.");
+                return;
+            }
+
             switch (tipo) {
                 case "CajaAhorro":
                     controller.crearCajaAhorro(cuit, moneda, saldo);
                     break;
                 case "CuentaCorriente":
-                    double descubierto = Double.parseDouble(txtDescubierto.getText().trim());
+                    String descStr = txtDescubierto.getText().trim();
+                    if (descStr.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Descubierto requerido para Cuenta Corriente.");
+                        return;
+                    }
+                    double descubierto = Double.parseDouble(descStr);
                     controller.crearCuentaCorriente(cuit, moneda, saldo, descubierto);
                     break;
                 case "Wallet":
                     String direccion = txtDireccion.getText().trim();
+                    if (direccion.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Dirección requerida para Wallet.");
+                        return;
+                    }
                     CriptoTipo cripto = (CriptoTipo) cmbCripto.getSelectedItem();
-                    controller.crearWallet(cuit, cripto, saldo, direccion);
+                    if (cripto == null) {
+                        JOptionPane.showMessageDialog(this, "Seleccione un tipo de criptomoneda.");
+                        return;
+                    }
+                    controller.crearWallet(cripto, saldo, direccion);
                     break;
             }
 

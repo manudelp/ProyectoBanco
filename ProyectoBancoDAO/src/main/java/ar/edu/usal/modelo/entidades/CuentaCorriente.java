@@ -49,4 +49,10 @@ public class CuentaCorriente extends Cuenta {
     public void setDescubierto(double descubierto) {
         this.descubierto = descubierto;
     }
+
+    @Override
+    public String getIdentificador() {
+        return cbu;
+    }
+
 }

@@ -23,6 +23,11 @@ public class Wallet extends Cuenta {
         else throw new SaldoInsuficienteException("Saldo insuficiente en Wallet");
     }
 
+    @Override
+    public String getIdentificador() {
+        return direccion;
+    }
+
     public String getDireccion() {
         return direccion;
     }

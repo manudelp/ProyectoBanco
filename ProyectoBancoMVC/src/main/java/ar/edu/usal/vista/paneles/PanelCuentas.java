@@ -24,7 +24,13 @@ public class PanelCuentas extends JPanel {
         this.controller = new CuentaController();
         this.setLayout(new BorderLayout());
 
-        // Panel superior: CUIT + buscar
+        // Tabla
+        String[] columnas = {"Tipo", "CBU/Dirección", "Moneda", "Saldo", "Descubierto"};
+        modelo = new DefaultTableModel(columnas, 0);
+        tabla = new JTable(modelo);
+        JScrollPane scrollPane = new JScrollPane(tabla);
+
+        // Panel superior: CUIT + buscar / Ver todas las cuentas
         JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelBusqueda.add(new JLabel("CUIT:"));
         txtCuit = new JTextField(15);
@@ -32,11 +38,32 @@ public class PanelCuentas extends JPanel {
         panelBusqueda.add(txtCuit);
         panelBusqueda.add(btnBuscar);
 
-        // Tabla
-        String[] columnas = {"Tipo", "CBU/Dirección", "Moneda", "Saldo", "Descubierto"};
-        modelo = new DefaultTableModel(columnas, 0);
-        tabla = new JTable(modelo);
-        JScrollPane scrollPane = new JScrollPane(tabla);
+        JButton btnVerTodas = new JButton("Ver todas las cuentas");
+        panelBusqueda.add(btnVerTodas);
+
+        btnVerTodas.addActionListener(e -> {
+            modelo.setRowCount(0); // limpiar tabla antes de cargar
+            List<Cuenta> cuentas = controller.listarTodas();
+            for (Cuenta c : cuentas) {
+                String identificador = "-";
+                String descubierto = "-";
+                if (c instanceof CajaAhorro) {
+                    identificador = ((CajaAhorro) c).getCbu();
+                } else if (c instanceof CuentaCorriente) {
+                    identificador = ((CuentaCorriente) c).getCbu();
+                    descubierto = String.valueOf(((CuentaCorriente) c).getDescubierto());
+                } else if (c instanceof Wallet) {
+                    identificador = ((Wallet) c).getDireccion();
+                }
+                modelo.addRow(new Object[]{
+                        c.getClass().getSimpleName(),
+                        identificador,
+                        c.getMoneda(),
+                        c.getSaldo(),
+                        descubierto
+                });
+            }
+        });
 
         // Botones de acción
         JPanel panelBotones = new JPanel();
@@ -61,20 +88,13 @@ public class PanelCuentas extends JPanel {
     }
 
     private void refrescar() {
-        modelo.setRowCount(0);
         String cuit = txtCuit.getText().trim();
-        if (cuit.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ingrese CUIT para buscar.");
-            return;
-        }
-
-
-
+        if (cuit.isEmpty()) return; // omitir mensaje al refrescar tras alta
+        modelo.setRowCount(0);
         List<Cuenta> cuentas = controller.buscarPorCuit(cuit);
         for (Cuenta c : cuentas) {
             String identificador = "-";
             String descubierto = "-";
-
             if (c instanceof CajaAhorro) {
                 identificador = ((CajaAhorro) c).getCbu();
             } else if (c instanceof CuentaCorriente) {
@@ -83,7 +103,6 @@ public class PanelCuentas extends JPanel {
             } else if (c instanceof Wallet) {
                 identificador = ((Wallet) c).getDireccion();
             }
-
             modelo.addRow(new Object[]{
                     c.getClass().getSimpleName(),
                     identificador,
@@ -93,7 +112,6 @@ public class PanelCuentas extends JPanel {
             });
         }
     }
-
 
     private void eliminarCuenta(ActionEvent e) {
         int fila = tabla.getSelectedRow();
@@ -107,11 +125,11 @@ public class PanelCuentas extends JPanel {
         Cuenta cuenta = null;
 
         switch (tipo) {
-            case "CA":
-            case "CC":
+            case "CajaAhorro":
+            case "CuentaCorriente":
                 cuenta = controller.buscarPorCbu(id);
                 break;
-            case "WALLET":
+            case "Wallet":
                 cuenta = controller.buscarPorDireccion(id);
                 break;
         }

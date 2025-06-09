@@ -22,6 +22,11 @@ public class CuentaService implements ICuentaService {
     }
 
     @Override
+    public void actualizarCuenta(Cuenta cuenta) {
+        dao.actualizar(cuenta);
+    }
+
+    @Override
     public List<Cuenta> buscarPorCuit(String cuit) {
         return dao.buscarPorCuit(cuit);
     }

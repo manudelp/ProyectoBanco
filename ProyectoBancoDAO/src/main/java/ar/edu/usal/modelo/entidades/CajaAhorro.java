@@ -39,4 +39,10 @@ public class CajaAhorro extends Cuenta {
         if (saldo >= monto) saldo -= monto;
         else throw new SaldoInsuficienteException("Saldo insuficiente en Caja de Ahorro");
     }
+
+    @Override
+    public String getIdentificador() {
+        return cbu;
+    }
+
 }

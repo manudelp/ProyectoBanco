@@ -15,6 +15,7 @@ public abstract class Cuenta implements Serializable {
 
     public abstract void depositar(double monto);
     public abstract void extraer(double monto) throws SaldoInsuficienteException;
+    public abstract String getIdentificador();
 
     public Moneda getMoneda() {
         return moneda;
@@ -31,4 +32,5 @@ public abstract class Cuenta implements Serializable {
     public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
+
 }

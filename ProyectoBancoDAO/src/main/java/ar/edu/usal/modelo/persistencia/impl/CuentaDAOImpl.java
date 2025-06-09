@@ -164,4 +164,11 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
         }
         return lista;
     }
+
+    @Override
+    public void actualizar(Cuenta cuenta) {
+        eliminar(cuenta);
+        guardar(cuenta);
+    }
+
 }

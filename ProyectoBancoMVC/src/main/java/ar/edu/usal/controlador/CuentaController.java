@@ -26,13 +26,13 @@ public class CuentaController {
         registrarCuenta(cuenta);
     }
 
-    public void crearWallet(String cuit, CriptoTipo tipo, double saldo, String direccion) {
+    public void crearWallet(CriptoTipo tipo, double saldo, String direccion) {
         Wallet wallet = new Wallet(tipo.getMoneda(), saldo, direccion, tipo);
         registrarCuenta(wallet);
     }
 
     private String generarCbu() {
-        return "CBU" + System.currentTimeMillis();
+        return "004" + System.currentTimeMillis();
     }
 
     public void registrarCuenta(Cuenta cuenta) {
@@ -53,6 +53,10 @@ public class CuentaController {
 
     public void eliminarCuenta(Cuenta cuenta) {
         cuentaService.eliminarCuenta(cuenta);
+    }
+
+    public List<Cuenta> listarTodas() {
+        return cuentaService.listarTodas();
     }
 
 }
