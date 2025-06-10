@@ -12,7 +12,6 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
 
     public CuentaDAOImpl(String path) {
         super(path);
-        System.out.println("CuentaDAOImpl cargando desde: " + new File(path).getAbsolutePath());
     }
 
     @Override

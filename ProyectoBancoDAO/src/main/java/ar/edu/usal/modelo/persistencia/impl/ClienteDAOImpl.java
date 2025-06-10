@@ -12,7 +12,6 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
 
     public ClienteDAOImpl(String path) {
         super(path);
-        System.out.println("ClienteDAOImpl cargando desde: " + new File(path).getAbsolutePath());
     }
 
     @Override

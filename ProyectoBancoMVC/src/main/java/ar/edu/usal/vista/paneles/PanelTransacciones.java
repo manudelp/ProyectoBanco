@@ -42,28 +42,58 @@ public class PanelTransacciones extends JPanel {
     }
 
     private void abrirDialogoTransferencia() {
-        JTextField txtOrigen = new JTextField();
-        JTextField txtDestino = new JTextField();
-        JTextField txtMonto = new JTextField();
+        JTextField txtOrigen = new JTextField(15);
+        JTextField txtDestino = new JTextField(15);
+        JTextField txtMonto = new JTextField(15);
 
-        JPanel panel = new JPanel(new GridLayout(3, 2));
-        panel.add(new JLabel("CBU Origen:"));
-        panel.add(txtOrigen);
-        panel.add(new JLabel("CBU Destino:"));
-        panel.add(txtDestino);
-        panel.add(new JLabel("Monto:"));
-        panel.add(txtMonto);
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        int result = JOptionPane.showConfirmDialog(this, panel, "Nueva Transferencia", JOptionPane.OK_CANCEL_OPTION);
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("CBU Origen:"), gbc);
+        gbc.gridx = 1;
+        panel.add(txtOrigen, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("CBU Destino:"), gbc);
+        gbc.gridx = 1;
+        panel.add(txtDestino, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        panel.add(new JLabel("Monto:"), gbc);
+        gbc.gridx = 1;
+        panel.add(txtMonto, gbc);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Nueva Transferencia", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
+            String origen = txtOrigen.getText().trim();
+            String destino = txtDestino.getText().trim();
+            String montoStr = txtMonto.getText().trim();
+
+            if (origen.isEmpty() || destino.isEmpty() || montoStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Complete todos los campos.");
+                return;
+            }
+
+            double monto;
             try {
-                String origen = txtOrigen.getText().trim();
-                String destino = txtDestino.getText().trim();
-                double monto = Double.parseDouble(txtMonto.getText().trim());
+                monto = Double.parseDouble(montoStr);
+                if (monto <= 0) {
+                    JOptionPane.showMessageDialog(this, "El monto debe ser mayor a cero.");
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Monto inválido.");
+                return;
+            }
+
+            try {
                 controller.transferir(origen, destino, monto);
                 cargarTransacciones();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Error en la transferencia: " + ex.getMessage());
             }
         }
     }
