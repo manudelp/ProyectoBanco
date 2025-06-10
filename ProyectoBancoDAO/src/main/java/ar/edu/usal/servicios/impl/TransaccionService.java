@@ -1,11 +1,12 @@
 package ar.edu.usal.servicios.impl;
 
 import ar.edu.usal.modelo.entidades.*;
+import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
 import ar.edu.usal.modelo.persistencia.dao.CuentaDAO;
 import ar.edu.usal.modelo.persistencia.dao.TransaccionDAO;
 import ar.edu.usal.modelo.persistencia.factory.DAOFactory;
+import ar.edu.usal.modelo.utilidades.Conversor;
 import ar.edu.usal.servicios.ITransaccionService;
-import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,8 +34,30 @@ public class TransaccionService implements ITransaccionService {
     }
 
     @Override
+    public void convertir(Cuenta origen, Cuenta destino, double monto, String cuitCliente) throws Exception {
+        origen.extraer(monto);
+
+        Conversor conversor = new Conversor();
+        double convertido = conversor.convertir(origen, destino, monto);
+        destino.depositar(convertido);
+
+        cuentaDAO.eliminar(origen);
+        cuentaDAO.eliminar(destino);
+        cuentaDAO.guardar(origen);
+        cuentaDAO.guardar(destino);
+
+        Transaccion t = new Transaccion(
+                origen.getIdentificador(),
+                destino.getIdentificador(),
+                monto,
+                Transaccion.Tipo.CONVERSION,
+                cuitCliente != null ? cuitCliente : "DESCONOCIDO"
+        );
+        transaccionDAO.guardar(t);
+    }
+
+    @Override
     public void transferir(Cuenta origen, Cuenta destino, double monto) throws SaldoInsuficienteException {
-        // Validación: transferencias entre Wallets requieren mismo tipo
         if (origen instanceof Wallet && destino instanceof Wallet) {
             Wallet w1 = (Wallet) origen;
             Wallet w2 = (Wallet) destino;
@@ -43,7 +66,6 @@ public class TransaccionService implements ITransaccionService {
             }
         }
 
-        // Validación: transferencias entre cuentas bancarias requieren misma moneda
         boolean esBancaria = (origen instanceof CajaAhorro || origen instanceof CuentaCorriente) &&
                 (destino instanceof CajaAhorro || destino instanceof CuentaCorriente);
         if (esBancaria) {
@@ -58,7 +80,6 @@ public class TransaccionService implements ITransaccionService {
             }
         }
 
-        // Validación de saldo suficiente, considerando descubierto en CuentaCorriente
         if (origen instanceof CuentaCorriente) {
             CuentaCorriente cc = (CuentaCorriente) origen;
             if (cc.getSaldo() + cc.getDescubierto() < monto) {
@@ -78,8 +99,22 @@ public class TransaccionService implements ITransaccionService {
         cuentaDAO.guardar(origen);
         cuentaDAO.guardar(destino);
 
-        Transaccion t = new Transaccion(origen.getIdentificador(), destino.getIdentificador(), monto);
+        // Obtener CUIT del origen si es una cuenta bancaria
+        String cuit = null;
+        if (origen instanceof CajaAhorro) {
+            cuit = ((CajaAhorro) origen).getCuit();
+        } else if (origen instanceof CuentaCorriente) {
+            cuit = ((CuentaCorriente) origen).getCuit();
+        }
+
+        // Crear y registrar transacción con nuevo constructor
+        Transaccion t = new Transaccion(
+                origen.getIdentificador(),
+                destino.getIdentificador(),
+                monto,
+                Transaccion.Tipo.TRANSFERENCIA,
+                cuit != null ? cuit : "DESCONOCIDO"
+        );
         transaccionDAO.guardar(t);
     }
-
 }

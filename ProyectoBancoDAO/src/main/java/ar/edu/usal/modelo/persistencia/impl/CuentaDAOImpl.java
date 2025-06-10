@@ -17,98 +17,54 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
     @Override
     public void guardar(Cuenta cuenta) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo, true))) {
-            String texto;
-            if (cuenta instanceof CajaAhorro) {
-                CajaAhorro ca = (CajaAhorro) cuenta;
-                texto = String.format("CA,%s,%s,%s,%s",
-                        ca.getSaldo(),
-                        ca.getMoneda(),
-                        ca.getCbu(),
-                        ca.getCuit());
-            } else if (cuenta instanceof CuentaCorriente) {
-                CuentaCorriente cc = (CuentaCorriente) cuenta;
-                texto = String.format("CC,%s,%s,%s,%s,%s",
-                        cc.getSaldo(),
-                        cc.getMoneda(),
-                        cc.getCbu(),
-                        cc.getCuit(),
-                        cc.getDescubierto());
-            } else if (cuenta instanceof Wallet) {
-                Wallet w = (Wallet) cuenta;
-                texto = String.format("WALLET,%s,%s,%s",
-                        w.getSaldo(),
-                        w.getDireccion(),
-                        w.getCripto());
-            } else {
-                return;
-            }
-            writer.write(texto);
+            writer.write(serializarCuenta(cuenta));
             writer.newLine();
         } catch (IOException e) {
-            System.out.println("Error al guardar la cuenta: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Error inesperado: " + e.getMessage());
+            throw new RuntimeException("Error al guardar la cuenta: " + e.getMessage(), e);
         }
     }
 
     @Override
     public void eliminar(Cuenta cuenta) {
-        List<Cuenta> cuentas = leerTodo();
         List<Cuenta> actualizadas = new ArrayList<>();
-
-        for (Cuenta c : cuentas) {
-            if (cuenta instanceof CajaAhorro && c instanceof CajaAhorro) {
-                if (!((CajaAhorro) c).getCbu().equals(((CajaAhorro) cuenta).getCbu())) {
-                    actualizadas.add(c);
-                }
-            } else if (cuenta instanceof CuentaCorriente && c instanceof CuentaCorriente) {
-                if (!((CuentaCorriente) c).getCbu().equals(((CuentaCorriente) cuenta).getCbu())) {
-                    actualizadas.add(c);
-                }
-            } else if (cuenta instanceof Wallet && c instanceof Wallet) {
-                if (!((Wallet) c).getDireccion().equals(((Wallet) cuenta).getDireccion())) {
-                    actualizadas.add(c);
-                }
-            } else {
-                actualizadas.add(c);
-            }
+        for (Cuenta c : leerTodo()) {
+            if (!mismoIdentificador(c, cuenta)) actualizadas.add(c);
         }
-
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo, false))) {
             for (Cuenta c : actualizadas) {
-                String texto;
-                if (c instanceof CajaAhorro) {
-                    CajaAhorro ca = (CajaAhorro) c;
-                    texto = String.format("CA,%s,%s,%s,%s",
-                            ca.getSaldo(),
-                            ca.getMoneda(),
-                            ca.getCbu(),
-                            ca.getCuit());
-                } else if (c instanceof CuentaCorriente) {
-                    CuentaCorriente cc = (CuentaCorriente) c;
-                    texto = String.format("CC,%s,%s,%s,%s,%s",
-                            cc.getSaldo(),
-                            cc.getMoneda(),
-                            cc.getCbu(),
-                            cc.getCuit(),
-                            cc.getDescubierto());
-                } else if (c instanceof Wallet) {
-                    Wallet w = (Wallet) c;
-                    texto = String.format("WALLET,%s,%s,%s",
-                            w.getSaldo(),
-                            w.getDireccion(),
-                            w.getCripto());
-                } else {
-                    continue;
-                }
-                writer.write(texto);
+                writer.write(serializarCuenta(c));
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error al eliminar la cuenta: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Error inesperado al eliminar la cuenta: " + e.getMessage());
+            throw new RuntimeException("Error al eliminar la cuenta: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void actualizar(Cuenta cuenta) {
+        eliminar(cuenta);
+        guardar(cuenta);
+    }
+
+    @Override
+    public List<Cuenta> leerTodo() {
+        List<Cuenta> lista = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(archivo))) {
+            String linea;
+            while ((linea = reader.readLine()) != null) {
+                String[] d = linea.split(",");
+                if ("CA".equals(d[0])) {
+                    lista.add(new CajaAhorro(Double.parseDouble(d[1]), Moneda.valueOf(d[2]), d[3], d[4]));
+                } else if ("CC".equals(d[0])) {
+                    lista.add(new CuentaCorriente(Double.parseDouble(d[1]), Moneda.valueOf(d[2]), d[3], d[4], Double.parseDouble(d[5])));
+                } else if ("WALLET".equals(d[0])) {
+                    lista.add(new Wallet(Double.parseDouble(d[1]), d[2], Cripto.valueOf(d[3])));
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error al leer las cuentas: " + e.getMessage(), e);
+        }
+        return lista;
     }
 
     @Override
@@ -117,14 +73,10 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
         for (Cuenta cuenta : leerTodo()) {
             if (cuenta instanceof CajaAhorro) {
                 CajaAhorro ca = (CajaAhorro) cuenta;
-                if (ca.getCuit().equals(cuit)) {
-                    resultado.add(ca);
-                }
+                if (ca.getCuit().equals(cuit)) resultado.add(ca);
             } else if (cuenta instanceof CuentaCorriente) {
                 CuentaCorriente cc = (CuentaCorriente) cuenta;
-                if (cc.getCuit().equals(cuit)) {
-                    resultado.add(cc);
-                }
+                if (cc.getCuit().equals(cuit)) resultado.add(cc);
             }
         }
         return resultado;
@@ -132,8 +84,7 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
 
     @Override
     public Cuenta buscarPorCbu(String cbu) {
-        List<Cuenta> cuentas = leerTodo();
-        for (Cuenta cuenta : cuentas) {
+        for (Cuenta cuenta : leerTodo()) {
             if (cuenta instanceof CajaAhorro) {
                 CajaAhorro ca = (CajaAhorro) cuenta;
                 if (ca.getCbu().equals(cbu)) return ca;
@@ -147,50 +98,30 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
 
     @Override
     public Cuenta buscarPorDireccion(String direccion) {
-        List<Cuenta> cuentas = leerTodo();
-        for (Cuenta cuenta : cuentas) {
+        for (Cuenta cuenta : leerTodo()) {
             if (cuenta instanceof Wallet) {
                 Wallet w = (Wallet) cuenta;
-                if (w.getDireccion().equals(direccion)) return cuenta;
+                if (w.getDireccion().equals(direccion)) return w;
             }
         }
         return null;
     }
 
-
-    @Override
-    public List<Cuenta> leerTodo() {
-        List<Cuenta> lista = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(archivo))) {
-            String linea;
-            while ((linea = reader.readLine()) != null) {
-                // Separar datos de la Cuenta
-                String[] datos = linea.split(",");
-
-                // Validar tipo de Cuenta
-                if (datos[0].equals("CA")) {
-                    // Agregar instancia de Cuenta tipo Caja de Ahorro a la lista
-                    lista.add(new CajaAhorro(Double.parseDouble(datos[1]), Moneda.valueOf(datos[2]), datos[3], datos[4]));
-                } else if (datos[0].equals("CC")) {
-                    // Agregar instancia de Cuenta tipo Cuenta Corriente a la lista
-                    lista.add(new CuentaCorriente(Double.parseDouble(datos[1]), Moneda.valueOf(datos[2]), datos[3], datos[4], Double.parseDouble(datos[5])));
-                } else if (datos[0].equals("WALLET")) {
-                    // Agregar instancia de Cuenta tipo Wallet a la lista
-                    lista.add(new Wallet(Double.parseDouble(datos[2]), datos[3], Cripto.valueOf(datos[4])));
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error al leer las cuentas: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Error inesperado al leer las cuentas: " + e.getMessage());
+    private String serializarCuenta(Cuenta cuenta) {
+        if (cuenta instanceof CajaAhorro) {
+            CajaAhorro ca = (CajaAhorro) cuenta;
+            return String.format("CA,%s,%s,%s,%s", ca.getSaldo(), ca.getMoneda(), ca.getCbu(), ca.getCuit());
+        } else if (cuenta instanceof CuentaCorriente) {
+            CuentaCorriente cc = (CuentaCorriente) cuenta;
+            return String.format("CC,%s,%s,%s,%s,%s", cc.getSaldo(), cc.getMoneda(), cc.getCbu(), cc.getCuit(), cc.getDescubierto());
+        } else if (cuenta instanceof Wallet) {
+            Wallet w = (Wallet) cuenta;
+            return String.format("WALLET,%s,%s,%s", w.getSaldo(), w.getDireccion(), w.getCripto());
         }
-        return lista;
+        throw new IllegalArgumentException("Tipo de cuenta no reconocido");
     }
 
-    @Override
-    public void actualizar(Cuenta cuenta) {
-        eliminar(cuenta);
-        guardar(cuenta);
+    private boolean mismoIdentificador(Cuenta a, Cuenta b) {
+        return a.getIdentificador().equals(b.getIdentificador());
     }
-
 }

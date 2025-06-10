@@ -1,12 +1,19 @@
 package ar.edu.usal.modelo.entidades;
 
-import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
-
 public class CuentaCorriente extends Cuenta {
     private Moneda moneda;
     private String cbu;
     private String cuit;
     private double descubierto;
+    private static long cbuCounter = 31749577225264L;
+
+    public CuentaCorriente(Moneda moneda, String cuit, double descubierto) {
+        super(0.0);
+        this.moneda = moneda;
+        this.cuit = cuit;
+        this.descubierto = descubierto;
+        this.cbu = String.format("%016d", cbuCounter++);
+    }
 
     public CuentaCorriente(double saldo, Moneda moneda, String cbu, String cuit, double descubierto) {
         super(saldo);
@@ -22,25 +29,26 @@ public class CuentaCorriente extends Cuenta {
     }
 
     @Override
-    public void extraer(double monto) throws SaldoInsuficienteException {
+    public void extraer(double monto) {
         if (saldo + descubierto >= monto) saldo -= monto;
-        else throw new SaldoInsuficienteException("Saldo insuficiente en Cuenta Corriente");
+        else throw new RuntimeException("Saldo insuficiente en Cuenta Corriente");
+    }
+
+    @Override
+    public String getIdentificador() {
+        return cbu;
+    }
+
+    public Moneda getMoneda() {
+        return moneda;
     }
 
     public String getCbu() {
         return cbu;
     }
 
-    public void setCbu(String cbu) {
-        this.cbu = cbu;
-    }
-
     public String getCuit() {
         return cuit;
-    }
-
-    public void setCuit(String cuit) {
-        this.cuit = cuit;
     }
 
     public double getDescubierto() {
@@ -51,17 +59,8 @@ public class CuentaCorriente extends Cuenta {
         this.descubierto = descubierto;
     }
 
-    public Moneda getMoneda() {
-        return moneda;
-    }
-
-    public void setMoneda(Moneda moneda) {
-        this.moneda = moneda;
-    }
-
     @Override
-    public String getIdentificador() {
-        return cbu;
+    public String toString() {
+        return String.format("[CuentaCorriente] %s - Saldo: %.2f %s", cbu, saldo, moneda);
     }
-
 }

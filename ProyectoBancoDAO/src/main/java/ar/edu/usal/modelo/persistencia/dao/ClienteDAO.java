@@ -5,7 +5,7 @@ import ar.edu.usal.modelo.entidades.Cliente;
 import java.util.List;
 
 public interface ClienteDAO {
-    List<Cliente> obtenerTodos();
+    List<Cliente> leerTodo();
     void guardar(Cliente cliente);
     void guardarTodos(List<Cliente> clientes);
     void eliminar(String cuit);

@@ -29,7 +29,7 @@ public class ClienteService implements IClienteService {
 
     @Override
     public Cliente buscarPorCuit(String cuit) {
-        return dao.obtenerTodos().stream()
+        return dao.leerTodo().stream()
                 .filter(c -> c.getCuit().equals(cuit))
                 .findFirst()
                 .orElse(null);
@@ -37,6 +37,6 @@ public class ClienteService implements IClienteService {
 
     @Override
     public List<Cliente> obtenerTodos() {
-        return dao.obtenerTodos();
+        return dao.leerTodo();
     }
 }

@@ -1,0 +1,4 @@
+1,Juan,Pedro,000,mail@mail.com,Casa
+2,Martin,Sanchez,000,mail@mail.com,Casa
+3,Manuel,Carlos,1,carlosmanuel@gmail.com,Casa
+4,Toto,Toto,10,toto@toto.toto,Toto

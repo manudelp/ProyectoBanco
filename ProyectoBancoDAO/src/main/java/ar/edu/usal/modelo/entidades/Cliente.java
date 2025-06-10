@@ -1,6 +1,8 @@
 package ar.edu.usal.modelo.entidades;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Cliente implements Serializable {
     private String cuit;
@@ -9,6 +11,7 @@ public class Cliente implements Serializable {
     private String telefono;
     private String email;
     private String domicilio;
+    private List<Cuenta> cuentas;
 
     public Cliente(String cuit, String nombre, String apellido, String telefono, String email, String domicilio) {
         this.cuit = cuit;
@@ -17,6 +20,13 @@ public class Cliente implements Serializable {
         this.telefono = telefono;
         this.email = email;
         this.domicilio = domicilio;
+        this.cuentas = new ArrayList<>();
+    }
+
+    public void agregarCuenta(Cuenta cuenta) {
+        if (cuenta != null) {
+            this.cuentas.add(cuenta);
+        }
     }
 
     public String getCuit() {
@@ -65,5 +75,13 @@ public class Cliente implements Serializable {
 
     public void setDomicilio(String domicilio) {
         this.domicilio = domicilio;
+    }
+
+    public List<Cuenta> getCuentas() {
+        return cuentas;
+    }
+
+    public void setCuentas(List<Cuenta> cuentas) {
+        this.cuentas = cuentas;
     }
 }

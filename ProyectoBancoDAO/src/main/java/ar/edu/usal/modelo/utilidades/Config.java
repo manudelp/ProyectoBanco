@@ -8,14 +8,14 @@ public class Config {
     private static final Properties props = new Properties();
 
     static {
-        try (InputStream input = Config.class.getClassLoader().getResourceAsStream("config.properties")) {
-            if (input != null) {
-                props.load(input);
+        try (InputStream in = Config.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if (in != null) {
+                props.load(in);
             } else {
-                throw new RuntimeException("No se encontró config.properties");
+                System.out.println("No se encontró el archivo config.properties en el classpath.");
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error cargando config.properties", e);
+            System.out.println("Error al cargar config.properties: " + e.getMessage());
         }
     }
 

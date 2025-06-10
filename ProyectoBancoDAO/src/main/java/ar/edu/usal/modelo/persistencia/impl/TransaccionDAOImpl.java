@@ -8,8 +8,10 @@ import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TransaccionDAOImpl extends GenericByteManager<Transaccion> implements TransaccionDAO {
 
@@ -45,5 +47,26 @@ public class TransaccionDAOImpl extends GenericByteManager<Transaccion> implemen
     @Override
     public List<Transaccion> obtenerTodas() {
         return leerTodo();
+    }
+
+    @Override
+    public List<Transaccion> filtrarPorMonedaYMinimo(String moneda, double minimo) {
+        return leerTodo().stream()
+                .filter(t -> (t.getOrigen().contains(moneda) || t.getDestino().contains(moneda)))
+                .filter(t -> t.getMonto() > minimo)
+                .sorted((a, b) -> b.getFecha().compareTo(a.getFecha()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Transaccion> filtrarPorDireccionYFechas(String direccionOrigen, LocalDate desde, LocalDate hasta) {
+        return leerTodo().stream()
+                .filter(t -> t.getOrigen().equals(direccionOrigen))
+                .filter(t -> {
+                    LocalDate fecha = t.getFecha().toLocalDate();
+                    return (!fecha.isBefore(desde) && !fecha.isAfter(hasta));
+                })
+                .sorted((a, b) -> a.getFecha().compareTo(b.getFecha()))
+                .collect(Collectors.toList());
     }
 }

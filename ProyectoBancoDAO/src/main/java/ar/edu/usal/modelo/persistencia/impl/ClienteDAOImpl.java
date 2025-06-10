@@ -59,11 +59,6 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
     }
 
     @Override
-    public List<Cliente> obtenerTodos() {
-        return leerTodo();
-    }
-
-    @Override
     public void eliminar(String cuit) {
         List<Cliente> clientes = leerTodo();
         clientes.removeIf(c -> c.getCuit().equals(cuit));
