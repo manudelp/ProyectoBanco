@@ -7,7 +7,6 @@ import ar.edu.usal.modelo.persistencia.factory.DAOFactory;
 import ar.edu.usal.servicios.ITransaccionService;
 import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,31 +34,36 @@ public class TransaccionService implements ITransaccionService {
 
     @Override
     public void transferir(Cuenta origen, Cuenta destino, double monto) throws SaldoInsuficienteException {
+        // Validación: transferencias entre Wallets requieren mismo tipo
         if (origen instanceof Wallet && destino instanceof Wallet) {
-            throw new UnsupportedOperationException("Transferencias entre Wallets no permitidas");
-        }
-
-        if (origen instanceof CajaAhorro || origen instanceof CuentaCorriente) {
-            double saldoDisponible = origen instanceof CuentaCorriente
-                    ? ((CuentaCorriente) origen).getSaldo() + ((CuentaCorriente) origen).getDescubierto()
-                    : origen.getSaldo();
-
-            if (saldoDisponible < monto) {
-                throw new SaldoInsuficienteException("Saldo insuficiente para realizar la transferencia.");
+            Wallet w1 = (Wallet) origen;
+            Wallet w2 = (Wallet) destino;
+            if (!w1.getTipo().equals(w2.getTipo())) {
+                throw new UnsupportedOperationException("Wallets con diferente cripto tipo no pueden transferir entre sí.");
             }
-
-            origen.setSaldo(origen.getSaldo() - monto);
-            destino.setSaldo(destino.getSaldo() + monto);
-
-            cuentaDAO.eliminar(origen);
-            cuentaDAO.eliminar(destino);
-            cuentaDAO.guardar(origen);
-            cuentaDAO.guardar(destino);
-
-            Transaccion t = new Transaccion(origen.getIdentificador(), destino.getIdentificador(), monto);
-            transaccionDAO.guardar(t);
-        } else {
-            throw new UnsupportedOperationException("Solo se permiten transferencias desde cuentas bancarias.");
         }
+
+        // Validación: transferencias entre cuentas bancarias requieren misma moneda
+        boolean esBancaria = (origen instanceof CajaAhorro || origen instanceof CuentaCorriente) &&
+                (destino instanceof CajaAhorro || destino instanceof CuentaCorriente);
+        if (esBancaria && !origen.getMoneda().equals(destino.getMoneda())) {
+            throw new UnsupportedOperationException("Las cuentas bancarias deben tener la misma moneda para transferencias.");
+        }
+
+        if (origen.getSaldo() < monto) {
+            throw new SaldoInsuficienteException("Saldo insuficiente para realizar la transferencia.");
+        }
+
+        origen.extraer(monto);
+        destino.depositar(monto);
+
+        cuentaDAO.eliminar(origen);
+        cuentaDAO.eliminar(destino);
+        cuentaDAO.guardar(origen);
+        cuentaDAO.guardar(destino);
+
+        Transaccion t = new Transaccion(origen.getIdentificador(), destino.getIdentificador(), monto);
+        transaccionDAO.guardar(t);
     }
+
 }

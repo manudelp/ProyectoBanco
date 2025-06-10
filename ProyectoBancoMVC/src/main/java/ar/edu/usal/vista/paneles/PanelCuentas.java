@@ -1,10 +1,7 @@
 package ar.edu.usal.vista.paneles;
 
 import ar.edu.usal.controlador.CuentaController;
-import ar.edu.usal.modelo.entidades.CajaAhorro;
-import ar.edu.usal.modelo.entidades.Cuenta;
-import ar.edu.usal.modelo.entidades.CuentaCorriente;
-import ar.edu.usal.modelo.entidades.Wallet;
+import ar.edu.usal.modelo.entidades.*;
 import ar.edu.usal.vista.dialogos.FormularioAltaCuenta;
 
 import javax.swing.*;
@@ -15,97 +12,73 @@ import java.util.List;
 
 public class PanelCuentas extends JPanel {
 
-    private final CuentaController controller;
+    private final CuentaController controller = new CuentaController();
     private final DefaultTableModel modelo;
     private final JTable tabla;
     private final JTextField txtCuit;
 
     public PanelCuentas() {
-        this.controller = new CuentaController();
-        this.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
 
-        // Tabla
         String[] columnas = {"Tipo", "CBU/Dirección", "Moneda", "Saldo", "Descubierto"};
         modelo = new DefaultTableModel(columnas, 0);
         tabla = new JTable(modelo);
-        JScrollPane scrollPane = new JScrollPane(tabla);
+        JScrollPane scroll = new JScrollPane(tabla);
 
-        // Panel superior: CUIT + buscar / Ver todas las cuentas
-        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelBusqueda.add(new JLabel("CUIT:"));
         txtCuit = new JTextField(15);
         JButton btnBuscar = new JButton("Buscar");
-        panelBusqueda.add(txtCuit);
-        panelBusqueda.add(btnBuscar);
+        JButton btnVerTodas = new JButton("Ver todas");
+        JButton btnAgregar = new JButton("Agregar");
+        JButton btnEliminar = new JButton("Eliminar");
 
-        JButton btnVerTodas = new JButton("Ver todas las cuentas");
-        panelBusqueda.add(btnVerTodas);
+        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelSuperior.add(new JLabel("CUIT:"));
+        panelSuperior.add(txtCuit);
+        panelSuperior.add(btnBuscar);
+        panelSuperior.add(btnVerTodas);
 
-        btnVerTodas.addActionListener(e -> {
-            modelo.setRowCount(0); // limpiar tabla antes de cargar
-            List<Cuenta> cuentas = controller.listarTodas();
-            for (Cuenta c : cuentas) {
-                String identificador = "-";
-                String descubierto = "-";
-                if (c instanceof CajaAhorro) {
-                    identificador = ((CajaAhorro) c).getCbu();
-                } else if (c instanceof CuentaCorriente) {
-                    identificador = ((CuentaCorriente) c).getCbu();
-                    descubierto = String.valueOf(((CuentaCorriente) c).getDescubierto());
-                } else if (c instanceof Wallet) {
-                    identificador = ((Wallet) c).getDireccion();
-                }
-                modelo.addRow(new Object[]{
-                        c.getClass().getSimpleName(),
-                        identificador,
-                        c.getMoneda(),
-                        c.getSaldo(),
-                        descubierto
-                });
-            }
-        });
+        JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelInferior.add(btnAgregar);
+        panelInferior.add(btnEliminar);
 
-        // Botones de acción
-        JPanel panelBotones = new JPanel();
-        JButton btnAgregar = new JButton("Agregar Cuenta");
-        JButton btnEliminar = new JButton("Eliminar Cuenta");
-        panelBotones.add(btnAgregar);
-        panelBotones.add(btnEliminar);
+        add(panelSuperior, BorderLayout.NORTH);
+        add(scroll, BorderLayout.CENTER);
+        add(panelInferior, BorderLayout.SOUTH);
 
-        // Layout general
-        this.add(panelBusqueda, BorderLayout.NORTH);
-        this.add(scrollPane, BorderLayout.CENTER);
-        this.add(panelBotones, BorderLayout.SOUTH);
-
-        // Acciones
-        btnBuscar.addActionListener(this::buscarCuentas);
+        btnBuscar.addActionListener(this::buscar);
+        btnVerTodas.addActionListener(e -> cargar(controller.listarTodas()));
         btnAgregar.addActionListener(e -> new FormularioAltaCuenta(controller, this::refrescar).setVisible(true));
-        btnEliminar.addActionListener(this::eliminarCuenta);
+        btnEliminar.addActionListener(this::eliminar);
+
+        cargar(controller.listarTodas());
     }
 
-    private void buscarCuentas(ActionEvent e) {
-        refrescar();
-    }
-
-    private void refrescar() {
+    private void buscar(ActionEvent e) {
         String cuit = txtCuit.getText().trim();
-        if (cuit.isEmpty()) return; // omitir mensaje al refrescar tras alta
+        if (!cuit.isEmpty()) cargar(controller.buscarPorCuit(cuit));
+    }
+
+    private void cargar(List<Cuenta> cuentas) {
         modelo.setRowCount(0);
-        List<Cuenta> cuentas = controller.buscarPorCuit(cuit);
         for (Cuenta c : cuentas) {
-            String identificador = "-";
+            String id = "-";
             String descubierto = "-";
+
             if (c instanceof CajaAhorro) {
-                identificador = ((CajaAhorro) c).getCbu();
+                CajaAhorro ca = (CajaAhorro) c;
+                id = ca.getCbu();
             } else if (c instanceof CuentaCorriente) {
-                identificador = ((CuentaCorriente) c).getCbu();
-                descubierto = String.valueOf(((CuentaCorriente) c).getDescubierto());
+                CuentaCorriente cc = (CuentaCorriente) c;
+                id = cc.getCbu();
+                descubierto = String.valueOf(cc.getDescubierto());
             } else if (c instanceof Wallet) {
-                identificador = ((Wallet) c).getDireccion();
+                Wallet w = (Wallet) c;
+                id = w.getDireccion();
             }
+
             modelo.addRow(new Object[]{
                     c.getClass().getSimpleName(),
-                    identificador,
+                    id,
                     c.getMoneda(),
                     c.getSaldo(),
                     descubierto
@@ -113,25 +86,31 @@ public class PanelCuentas extends JPanel {
         }
     }
 
-    private void eliminarCuenta(ActionEvent e) {
+    private void refrescar() {
+        String cuit = txtCuit.getText().trim();
+        if (cuit.isEmpty()) {
+            cargar(controller.listarTodas());
+        } else {
+            cargar(controller.buscarPorCuit(cuit));
+        }
+    }
+
+
+    private void eliminar(ActionEvent e) {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Seleccione una cuenta para eliminar.");
+            JOptionPane.showMessageDialog(this, "Seleccione una cuenta.");
             return;
         }
 
         String tipo = modelo.getValueAt(fila, 0).toString();
-        String id = modelo.getValueAt(fila, 1).toString(); // CBU o Dirección
+        String id = modelo.getValueAt(fila, 1).toString();
         Cuenta cuenta = null;
 
-        switch (tipo) {
-            case "CajaAhorro":
-            case "CuentaCorriente":
-                cuenta = controller.buscarPorCbu(id);
-                break;
-            case "Wallet":
-                cuenta = controller.buscarPorDireccion(id);
-                break;
+        if (tipo.equals("CajaAhorro") || tipo.equals("CuentaCorriente")) {
+            cuenta = controller.buscarPorCbu(id);
+        } else if (tipo.equals("Wallet")) {
+            cuenta = controller.buscarPorDireccion(id);
         }
 
         if (cuenta == null) {

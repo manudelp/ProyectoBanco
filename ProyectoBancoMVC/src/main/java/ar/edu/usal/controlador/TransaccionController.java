@@ -22,9 +22,18 @@ public class TransaccionController {
 
     public void transferir(String origenId, String destinoId, double monto) throws SaldoInsuficienteException {
         Cuenta origen = cuentaService.buscarPorCbu(origenId);
-        Cuenta destino = cuentaService.buscarPorCbu(destinoId);
+        if (origen == null) {
+            origen = cuentaService.buscarPorDireccion(origenId);
+        }
 
-        if (origen == null || destino == null) throw new IllegalArgumentException("Cuenta no encontrada");
+        Cuenta destino = cuentaService.buscarPorCbu(destinoId);
+        if (destino == null) {
+            destino = cuentaService.buscarPorDireccion(destinoId);
+        }
+
+        if (origen == null || destino == null) {
+            throw new IllegalArgumentException("Cuenta no encontrada");
+        }
 
         transaccionService.transferir(origen, destino, monto);
 
@@ -33,6 +42,7 @@ public class TransaccionController {
         cuentaService.registrarCuenta(origen);
         cuentaService.registrarCuenta(destino);
     }
+
 
     public List<Transaccion> obtenerTodas() {
         return transaccionService.listarTodas();

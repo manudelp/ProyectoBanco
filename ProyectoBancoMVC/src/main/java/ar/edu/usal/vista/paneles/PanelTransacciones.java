@@ -42,9 +42,21 @@ public class PanelTransacciones extends JPanel {
     }
 
     private void abrirDialogoTransferencia() {
+        String[] tipos = {"CBU", "Wallet Address"};
+        JComboBox<String> cmbTipo = new JComboBox<>(tipos);
+
         JTextField txtOrigen = new JTextField(15);
         JTextField txtDestino = new JTextField(15);
         JTextField txtMonto = new JTextField(15);
+
+        JLabel lblOrigen = new JLabel("CBU Origen:");
+        JLabel lblDestino = new JLabel("CBU Destino:");
+
+        cmbTipo.addActionListener(e -> {
+            boolean esWallet = cmbTipo.getSelectedItem().equals("Wallet Address");
+            lblOrigen.setText(esWallet ? "Wallet Origen:" : "CBU Origen:");
+            lblDestino.setText(esWallet ? "Wallet Destino:" : "CBU Destino:");
+        });
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -52,16 +64,21 @@ public class PanelTransacciones extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("CBU Origen:"), gbc);
+        panel.add(new JLabel("Tipo de Transferencia:"), gbc);
+        gbc.gridx = 1;
+        panel.add(cmbTipo, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(lblOrigen, gbc);
         gbc.gridx = 1;
         panel.add(txtOrigen, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("CBU Destino:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 2;
+        panel.add(lblDestino, gbc);
         gbc.gridx = 1;
         panel.add(txtDestino, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 3;
         panel.add(new JLabel("Monto:"), gbc);
         gbc.gridx = 1;
         panel.add(txtMonto, gbc);
@@ -92,6 +109,8 @@ public class PanelTransacciones extends JPanel {
             try {
                 controller.transferir(origen, destino, monto);
                 cargarTransacciones();
+            } catch (ar.edu.usal.modelo.excepciones.SaldoInsuficienteException ex) {
+                JOptionPane.showMessageDialog(this, "Saldo insuficiente para realizar la transferencia.");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error en la transferencia: " + ex.getMessage());
             }

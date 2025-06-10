@@ -9,9 +9,9 @@ import javax.swing.*;
 public class VentanaPrincipal extends JFrame {
 
     public VentanaPrincipal() {
-        super("Sistema de Exchange - USAL");
+        super("Sistema de Exchange - USAL - Manuel Delpino");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(900, 600);
+        setSize(800, 600);
         setLocationRelativeTo(null);
 
         JTabbedPane tabbedPane = new JTabbedPane();
