@@ -4,12 +4,13 @@ import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
 
 public class Wallet extends Cuenta {
     private String direccion;
-    private CriptoTipo tipo;
+    private Cripto cripto;
 
-    public Wallet(Moneda moneda,  double saldo, String direccion, CriptoTipo tipo) {
-        super(moneda, saldo);
+    public Wallet(double saldo, String direccion, Cripto cripto) {
+        super(saldo);
+        this.cripto = cripto;
         this.direccion = direccion;
-        this.tipo = tipo;
+
     }
 
     @Override
@@ -32,15 +33,15 @@ public class Wallet extends Cuenta {
         return direccion;
     }
 
+    public Cripto getCripto() {
+        return cripto;
+    }
+
+    public void setCripto(Cripto cripto) {
+        this.cripto = cripto;
+    }
+
     public void setDireccion(String direccion) {
         this.direccion = direccion;
-    }
-
-    public CriptoTipo getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(CriptoTipo tipo) {
-        this.tipo = tipo;
     }
 }

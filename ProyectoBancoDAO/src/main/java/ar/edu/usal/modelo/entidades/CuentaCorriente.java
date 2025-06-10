@@ -3,13 +3,14 @@ package ar.edu.usal.modelo.entidades;
 import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
 
 public class CuentaCorriente extends Cuenta {
+    private Moneda moneda;
     private String cbu;
     private String cuit;
     private double descubierto;
 
-
-    public CuentaCorriente(Moneda moneda, double saldo, String cbu, String cuit, double descubierto) {
-        super(moneda, saldo);
+    public CuentaCorriente(double saldo, Moneda moneda, String cbu, String cuit, double descubierto) {
+        super(saldo);
+        this.moneda = moneda;
         this.cbu = cbu;
         this.cuit = cuit;
         this.descubierto = descubierto;
@@ -48,6 +49,14 @@ public class CuentaCorriente extends Cuenta {
 
     public void setDescubierto(double descubierto) {
         this.descubierto = descubierto;
+    }
+
+    public Moneda getMoneda() {
+        return moneda;
+    }
+
+    public void setMoneda(Moneda moneda) {
+        this.moneda = moneda;
     }
 
     @Override

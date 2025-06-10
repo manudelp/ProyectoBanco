@@ -62,24 +62,28 @@ public class PanelCuentas extends JPanel {
         modelo.setRowCount(0);
         for (Cuenta c : cuentas) {
             String id = "-";
+            String moneda = "-";
             String descubierto = "-";
 
             if (c instanceof CajaAhorro) {
                 CajaAhorro ca = (CajaAhorro) c;
                 id = ca.getCbu();
+                moneda = ca.getMoneda().toString();
             } else if (c instanceof CuentaCorriente) {
                 CuentaCorriente cc = (CuentaCorriente) c;
                 id = cc.getCbu();
+                moneda = cc.getMoneda().toString();
                 descubierto = String.valueOf(cc.getDescubierto());
             } else if (c instanceof Wallet) {
                 Wallet w = (Wallet) c;
                 id = w.getDireccion();
+                moneda = w.getCripto().toString();
             }
 
             modelo.addRow(new Object[]{
                     c.getClass().getSimpleName(),
                     id,
-                    c.getMoneda(),
+                    moneda,
                     c.getSaldo(),
                     descubierto
             });

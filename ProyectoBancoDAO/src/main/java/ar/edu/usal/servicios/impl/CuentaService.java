@@ -31,7 +31,6 @@ public class CuentaService implements ICuentaService {
         return dao.buscarPorCuit(cuit);
     }
 
-
     @Override
     public Cuenta buscarPorCbu(String cbu) {
         return dao.buscarPorCbu(cbu);

@@ -17,9 +17,9 @@ public class TestManager {
         clienteDAO.guardar(cliente);
 
         // ----- CREAR CUENTAS -----
-        CajaAhorro ca = new CajaAhorro(Moneda.PESO, 150000, "0001112223334445556667", "20123456789");
-        CuentaCorriente cc = new CuentaCorriente(Moneda.PESO, 150000, "0001112223334445556667", "20123456789", 1000);
-        Wallet wallet = new Wallet(Moneda.DOLAR, 27, "aHASJdghhjkagsd19w3", CriptoTipo.BTC);
+        CajaAhorro ca = new CajaAhorro( 150000, Moneda.PESO,"0001112223334445556667", "20123456789");
+        CuentaCorriente cc = new CuentaCorriente( 150000, Moneda.PESO, "0001112223334445556667", "20123456789", 1000);
+        Wallet wallet = new Wallet(27, "aHASJdghhjkagsd19w3", Cripto.BTC);
 
         cuentaDAO.guardar(ca);
         cuentaDAO.guardar(cc);

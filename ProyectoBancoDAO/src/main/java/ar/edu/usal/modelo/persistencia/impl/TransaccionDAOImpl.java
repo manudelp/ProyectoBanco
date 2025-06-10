@@ -33,9 +33,11 @@ public class TransaccionDAOImpl extends GenericByteManager<Transaccion> implemen
                 lista.add(t);
             }
         } catch (EOFException e) {
-            // fin del archivo
+            System.out.println("Fin del archivo, todas las transacciones leídas.");
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Error al leer las transacciones: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
         }
         return lista;
     }

@@ -16,18 +16,18 @@ public class CuentaController {
 
     public void crearCajaAhorro(String cuit, Moneda moneda, double saldo) {
         String cbu = generarCbu();
-        CajaAhorro cuenta = new CajaAhorro(moneda, saldo, cbu, cuit);
+        CajaAhorro cuenta = new CajaAhorro(saldo, moneda, cbu, cuit);
         registrarCuenta(cuenta);
     }
 
     public void crearCuentaCorriente(String cuit, Moneda moneda, double saldo, double descubierto) {
         String cbu = generarCbu();
-        CuentaCorriente cuenta = new CuentaCorriente(moneda, saldo, cbu, cuit, descubierto);
+        CuentaCorriente cuenta = new CuentaCorriente(saldo, moneda, cbu, cuit, descubierto);
         registrarCuenta(cuenta);
     }
 
-    public void crearWallet(CriptoTipo tipo, double saldo, String direccion) {
-        Wallet wallet = new Wallet(tipo.getMoneda(), saldo, direccion, tipo);
+    public void crearWallet(double saldo, String direccion, Cripto cripto) {
+        Wallet wallet = new Wallet(saldo, direccion, cripto);
         registrarCuenta(wallet);
     }
 

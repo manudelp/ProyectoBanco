@@ -17,34 +17,37 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
     @Override
     public void guardar(Cuenta cuenta) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo, true))) {
-            // Guardar datos de las Cuentas separado por comas
+            String texto;
             if (cuenta instanceof CajaAhorro) {
                 CajaAhorro ca = (CajaAhorro) cuenta;
-                writer.write("CA," +
-                        ca.getMoneda() + "," +
-                        ca.getSaldo() + "," +
-                        ca.getCbu() + "," +
+                texto = String.format("CA,%s,%s,%s,%s",
+                        ca.getSaldo(),
+                        ca.getMoneda(),
+                        ca.getCbu(),
                         ca.getCuit());
-
             } else if (cuenta instanceof CuentaCorriente) {
                 CuentaCorriente cc = (CuentaCorriente) cuenta;
-                writer.write("CC," +
-                        cc.getMoneda() + "," +
-                        cc.getSaldo() + "," +
-                        cc.getCbu() + "," +
-                        cc.getCuit() + "," +
+                texto = String.format("CC,%s,%s,%s,%s,%s",
+                        cc.getSaldo(),
+                        cc.getMoneda(),
+                        cc.getCbu(),
+                        cc.getCuit(),
                         cc.getDescubierto());
             } else if (cuenta instanceof Wallet) {
                 Wallet w = (Wallet) cuenta;
-                writer.write("WALLET," +
-                        w.getMoneda() + "," +
-                        w.getSaldo() + "," +
-                        w.getDireccion() + "," +
-                        w.getTipo());
+                texto = String.format("WALLET,%s,%s,%s",
+                        w.getSaldo(),
+                        w.getDireccion(),
+                        w.getCripto());
+            } else {
+                return;
             }
+            writer.write(texto);
             writer.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al guardar la cuenta: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
         }
     }
 
@@ -73,20 +76,38 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo, false))) {
             for (Cuenta c : actualizadas) {
+                String texto;
                 if (c instanceof CajaAhorro) {
                     CajaAhorro ca = (CajaAhorro) c;
-                    writer.write("CA," + ca.getMoneda() + "," + ca.getSaldo() + "," + ca.getCbu() + "," + ca.getCuit());
+                    texto = String.format("CA,%s,%s,%s,%s",
+                            ca.getSaldo(),
+                            ca.getMoneda(),
+                            ca.getCbu(),
+                            ca.getCuit());
                 } else if (c instanceof CuentaCorriente) {
                     CuentaCorriente cc = (CuentaCorriente) c;
-                    writer.write("CC," + cc.getMoneda() + "," + cc.getSaldo() + "," + cc.getCbu() + "," + cc.getCuit() + "," + cc.getDescubierto());
+                    texto = String.format("CC,%s,%s,%s,%s,%s",
+                            cc.getSaldo(),
+                            cc.getMoneda(),
+                            cc.getCbu(),
+                            cc.getCuit(),
+                            cc.getDescubierto());
                 } else if (c instanceof Wallet) {
                     Wallet w = (Wallet) c;
-                    writer.write("WALLET," + w.getMoneda() + "," + w.getSaldo() + "," + w.getDireccion() + "," + w.getTipo());
+                    texto = String.format("WALLET,%s,%s,%s",
+                            w.getSaldo(),
+                            w.getDireccion(),
+                            w.getCripto());
+                } else {
+                    continue;
                 }
+                writer.write(texto);
                 writer.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al eliminar la cuenta: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado al eliminar la cuenta: " + e.getMessage());
         }
     }
 
@@ -149,17 +170,19 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
                 // Validar tipo de Cuenta
                 if (datos[0].equals("CA")) {
                     // Agregar instancia de Cuenta tipo Caja de Ahorro a la lista
-                    lista.add(new CajaAhorro(Moneda.valueOf(datos[1]), Double.parseDouble(datos[2]), datos[3], datos[4]));
+                    lista.add(new CajaAhorro(Double.parseDouble(datos[1]), Moneda.valueOf(datos[2]), datos[3], datos[4]));
                 } else if (datos[0].equals("CC")) {
                     // Agregar instancia de Cuenta tipo Cuenta Corriente a la lista
-                    lista.add(new CuentaCorriente(Moneda.valueOf(datos[1]), Double.parseDouble(datos[2]), datos[3], datos[4], Double.parseDouble(datos[5])));
+                    lista.add(new CuentaCorriente(Double.parseDouble(datos[1]), Moneda.valueOf(datos[2]), datos[3], datos[4], Double.parseDouble(datos[5])));
                 } else if (datos[0].equals("WALLET")) {
                     // Agregar instancia de Cuenta tipo Wallet a la lista
-                    lista.add(new Wallet(Moneda.valueOf(datos[1]), Double.parseDouble(datos[2]), datos[3], CriptoTipo.valueOf(datos[4])));
+                    lista.add(new Wallet(Double.parseDouble(datos[2]), datos[3], Cripto.valueOf(datos[4])));
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al leer las cuentas: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado al leer las cuentas: " + e.getMessage());
         }
         return lista;
     }

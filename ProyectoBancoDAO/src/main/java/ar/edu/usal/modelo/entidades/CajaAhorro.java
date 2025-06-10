@@ -3,12 +3,14 @@ package ar.edu.usal.modelo.entidades;
 import ar.edu.usal.modelo.excepciones.SaldoInsuficienteException;
 
 public class CajaAhorro extends Cuenta {
+    protected Moneda moneda;
     private String cbu;
     private String cuit;
 
 
-    public CajaAhorro(Moneda moneda, double saldo, String cbu, String cuit) {
-        super(moneda, saldo);
+    public CajaAhorro(double saldo, Moneda moneda, String cbu, String cuit) {
+        super(saldo);
+        this.moneda = moneda;
         this.cbu = cbu;
         this.cuit = cuit;
     }
@@ -33,6 +35,15 @@ public class CajaAhorro extends Cuenta {
     public void setCbu(String cbu) {
         this.cbu = cbu;
     }
+
+    public Moneda getMoneda() {
+        return moneda;
+    }
+
+    public void setMoneda(Moneda moneda) {
+        this.moneda = moneda;
+    }
+
 
     @Override
     public void extraer(double monto) throws SaldoInsuficienteException {

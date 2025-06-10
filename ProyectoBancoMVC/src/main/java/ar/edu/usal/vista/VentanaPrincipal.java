@@ -4,7 +4,8 @@ import ar.edu.usal.vista.paneles.PanelClientes;
 import ar.edu.usal.vista.paneles.PanelCuentas;
 import ar.edu.usal.vista.paneles.PanelTransacciones;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
 
 public class VentanaPrincipal extends JFrame {
 

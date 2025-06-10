@@ -38,7 +38,7 @@ public class TransaccionService implements ITransaccionService {
         if (origen instanceof Wallet && destino instanceof Wallet) {
             Wallet w1 = (Wallet) origen;
             Wallet w2 = (Wallet) destino;
-            if (!w1.getTipo().equals(w2.getTipo())) {
+            if (!w1.getCripto().equals(w2.getCripto())) {
                 throw new UnsupportedOperationException("Wallets con diferente cripto tipo no pueden transferir entre sí.");
             }
         }
@@ -46,12 +46,28 @@ public class TransaccionService implements ITransaccionService {
         // Validación: transferencias entre cuentas bancarias requieren misma moneda
         boolean esBancaria = (origen instanceof CajaAhorro || origen instanceof CuentaCorriente) &&
                 (destino instanceof CajaAhorro || destino instanceof CuentaCorriente);
-        if (esBancaria && !origen.getMoneda().equals(destino.getMoneda())) {
-            throw new UnsupportedOperationException("Las cuentas bancarias deben tener la misma moneda para transferencias.");
+        if (esBancaria) {
+            Moneda monedaOrigen = (origen instanceof CajaAhorro)
+                    ? ((CajaAhorro) origen).getMoneda()
+                    : ((CuentaCorriente) origen).getMoneda();
+            Moneda monedaDestino = (destino instanceof CajaAhorro)
+                    ? ((CajaAhorro) destino).getMoneda()
+                    : ((CuentaCorriente) destino).getMoneda();
+            if (!monedaOrigen.equals(monedaDestino)) {
+                throw new UnsupportedOperationException("Las cuentas bancarias deben tener la misma moneda para transferencias.");
+            }
         }
 
-        if (origen.getSaldo() < monto) {
-            throw new SaldoInsuficienteException("Saldo insuficiente para realizar la transferencia.");
+        // Validación de saldo suficiente, considerando descubierto en CuentaCorriente
+        if (origen instanceof CuentaCorriente) {
+            CuentaCorriente cc = (CuentaCorriente) origen;
+            if (cc.getSaldo() + cc.getDescubierto() < monto) {
+                throw new SaldoInsuficienteException("Saldo insuficiente para realizar la transferencia (descubierto excedido).");
+            }
+        } else {
+            if (origen.getSaldo() < monto) {
+                throw new SaldoInsuficienteException("Saldo insuficiente para realizar la transferencia.");
+            }
         }
 
         origen.extraer(monto);

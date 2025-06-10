@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.Objects;
 
 public class PanelTransacciones extends JPanel {
 
@@ -53,7 +54,7 @@ public class PanelTransacciones extends JPanel {
         JLabel lblDestino = new JLabel("CBU Destino:");
 
         cmbTipo.addActionListener(e -> {
-            boolean esWallet = cmbTipo.getSelectedItem().equals("Wallet Address");
+            boolean esWallet = Objects.equals(cmbTipo.getSelectedItem(), "Wallet Address");
             lblOrigen.setText(esWallet ? "Wallet Origen:" : "CBU Origen:");
             lblDestino.setText(esWallet ? "Wallet Destino:" : "CBU Destino:");
         });

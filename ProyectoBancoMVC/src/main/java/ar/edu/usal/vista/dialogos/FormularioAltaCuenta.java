@@ -1,7 +1,7 @@
 package ar.edu.usal.vista.dialogos;
 
 import ar.edu.usal.controlador.CuentaController;
-import ar.edu.usal.modelo.entidades.CriptoTipo;
+import ar.edu.usal.modelo.entidades.Cripto;
 import ar.edu.usal.modelo.entidades.Moneda;
 
 import javax.swing.*;
@@ -13,12 +13,12 @@ public class FormularioAltaCuenta extends JDialog {
     private final Runnable callback;
 
     private final JTextField txtCuit = new JTextField(15);
-    private final JComboBox<String> cmbTipo = new JComboBox<>(new String[]{"CajaAhorro", "CuentaCorriente", "Wallet"});
+    private final JComboBox<String> cmbTipo = new JComboBox<>(new String[]{"Caja de Ahorro", "Cuenta Corriente", "Wallet"});
     private final JComboBox<Moneda> cmbMoneda = new JComboBox<>(Moneda.values());
     private final JTextField txtSaldo = new JTextField(15);
     private final JTextField txtDescubierto = new JTextField(15); // solo para CC
     private final JTextField txtDireccion = new JTextField(15);   // solo para Wallet
-    private final JComboBox<CriptoTipo> cmbCripto = new JComboBox<>(CriptoTipo.values()); // solo para Wallet
+    private final JComboBox<Cripto> cmbCripto = new JComboBox<>(Cripto.values()); // solo para Wallet
 
     public FormularioAltaCuenta(CuentaController controller, Runnable callback) {
         this.controller = controller;
@@ -38,8 +38,11 @@ public class FormularioAltaCuenta extends JDialog {
         panelCampos.add(new JLabel("Tipo de Cuenta:"));
         panelCampos.add(cmbTipo);
 
-        panelCampos.add(new JLabel("Moneda:"));
+        panelCampos.add(new JLabel("Moneda (solo CA y CC):"));
         panelCampos.add(cmbMoneda);
+
+        panelCampos.add(new JLabel("Cripto (solo Wallet):"));
+        panelCampos.add(cmbCripto);
 
         panelCampos.add(new JLabel("Saldo Inicial:"));
         panelCampos.add(txtSaldo);
@@ -49,9 +52,6 @@ public class FormularioAltaCuenta extends JDialog {
 
         panelCampos.add(new JLabel("Dirección (solo Wallet):"));
         panelCampos.add(txtDireccion);
-
-        panelCampos.add(new JLabel("Cripto Tipo (solo Wallet):"));
-        panelCampos.add(cmbCripto);
 
         JButton btnGuardar = new JButton("Guardar");
         JButton btnCancelar = new JButton("Cancelar");
@@ -74,12 +74,14 @@ public class FormularioAltaCuenta extends JDialog {
         String tipo = (String) cmbTipo.getSelectedItem();
 
         assert tipo != null;
+        boolean esCA = tipo.equals("Caja de Ahorro");
+        boolean esCC = tipo.equals("Cuenta Corriente");
         boolean esWallet = tipo.equals("Wallet");
-        boolean esCC = tipo.equals("CuentaCorriente");
 
         txtDescubierto.setEnabled(esCC);
         txtDireccion.setEnabled(esWallet);
         cmbCripto.setEnabled(esWallet);
+        cmbMoneda.setEnabled(esCA || esCC);
     }
 
     private void guardar() {
@@ -120,12 +122,12 @@ public class FormularioAltaCuenta extends JDialog {
                         JOptionPane.showMessageDialog(this, "Dirección requerida para Wallet.");
                         return;
                     }
-                    CriptoTipo cripto = (CriptoTipo) cmbCripto.getSelectedItem();
+                    Cripto cripto = (Cripto) cmbCripto.getSelectedItem();
                     if (cripto == null) {
                         JOptionPane.showMessageDialog(this, "Seleccione un tipo de criptomoneda.");
                         return;
                     }
-                    controller.crearWallet(cripto, saldo, direccion);
+                    controller.crearWallet(saldo, direccion, cripto);
                     break;
             }
 

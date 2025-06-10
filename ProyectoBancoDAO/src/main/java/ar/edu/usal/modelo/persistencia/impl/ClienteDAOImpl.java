@@ -27,7 +27,9 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
                     cliente.getDomicilio());
             writer.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al guardar el cliente: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
         }
     }
 
@@ -49,7 +51,9 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
                 lista.add(c);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al leer los clientes: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
         }
         return lista;
     }
@@ -92,7 +96,9 @@ public class ClienteDAOImpl extends GenericStringManager<Cliente> implements Cli
                 writer.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al guardar los clientes: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
         }
     }
 
