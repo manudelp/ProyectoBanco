@@ -86,6 +86,7 @@ public class ExtraccionFrame extends JFrame {
                     Transaccion.Tipo.EXTRACCION,
                     cliente.getCuit()
             );
+            transaccionService.registrar(transaccion);
 
             JOptionPane.showMessageDialog(this, "Extracción exitosa.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             dispose();
