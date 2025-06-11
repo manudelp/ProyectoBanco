@@ -19,13 +19,31 @@ public class NuevaCuentaFrame extends JFrame {
     private JButton botonCrear;
 
     public NuevaCuentaFrame(Cliente cliente) {
-        super("Apertura de Cuenta - Cliente: " + cliente.getCuit());
+        super("Apertura de Cuenta");
         this.cliente = cliente;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(400, 400);
+        setSize(450, 350);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(7, 2, 5, 5));
+        setResizable(false);
+
+        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Info cliente
+        JPanel info = new JPanel(new GridLayout(2, 1));
+        info.add(new JLabel("Cliente: " + cliente.getNombre() + " " + cliente.getApellido()));
+        info.add(new JLabel("CUIT: " + cliente.getCuit()));
+        panelPrincipal.add(info, BorderLayout.NORTH);
+
+        // Formulario
+        JPanel formulario = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
 
         comboTipo = new JComboBox<>(new String[]{"CajaAhorro", "CuentaCorriente", "Wallet"});
         comboMoneda = new JComboBox<>(Moneda.values());
@@ -33,15 +51,36 @@ public class NuevaCuentaFrame extends JFrame {
         campoDescubierto = new JTextField();
         botonCrear = new JButton("Crear Cuenta");
 
-        add(new JLabel("Tipo de cuenta:")); add(comboTipo);
-        add(new JLabel("Moneda (para bancarias):")); add(comboMoneda);
-        add(new JLabel("Cripto (para Wallet):")); add(comboCripto);
-        add(new JLabel("Descubierto (solo CC):")); add(campoDescubierto);
-        add(new JLabel()); add(botonCrear);
+        formulario.add(new JLabel("Tipo de cuenta:"), gbc);
+        gbc.gridx = 1;
+        formulario.add(comboTipo, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        formulario.add(new JLabel("Moneda (para bancarias):"), gbc);
+        gbc.gridx = 1;
+        formulario.add(comboMoneda, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        formulario.add(new JLabel("Cripto (para Wallet):"), gbc);
+        gbc.gridx = 1;
+        formulario.add(comboCripto, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        formulario.add(new JLabel("Descubierto (solo CC):"), gbc);
+        gbc.gridx = 1;
+        formulario.add(campoDescubierto, gbc);
+
+        panelPrincipal.add(formulario, BorderLayout.CENTER);
+
+        // Botón abajo
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        acciones.add(botonCrear);
+        panelPrincipal.add(acciones, BorderLayout.SOUTH);
+
+        add(panelPrincipal);
 
         actualizarVisibilidad();
         comboTipo.addActionListener(e -> actualizarVisibilidad());
-
         botonCrear.addActionListener(e -> crearCuenta());
     }
 
@@ -57,49 +96,54 @@ public class NuevaCuentaFrame extends JFrame {
         try {
             String tipo = (String) comboTipo.getSelectedItem();
             String identificadorGenerado = "";
-            // Validación de duplicidad
-            java.util.List<Cuenta> cuentasCliente = cuentaService.buscarPorCuit(cliente.getCuit());
+            var cuentasCliente = cuentaService.buscarPorCuit(cliente.getCuit());
+
             if (tipo.equals("CajaAhorro")) {
                 Moneda m = (Moneda) comboMoneda.getSelectedItem();
-                boolean existe = cuentasCliente.stream().anyMatch(c -> c instanceof CajaAhorro && ((CajaAhorro)c).getMoneda() == m);
+                boolean existe = cuentasCliente.stream().anyMatch(c -> c instanceof CajaAhorro && ((CajaAhorro) c).getMoneda() == m);
                 if (existe) {
-                    JOptionPane.showMessageDialog(this, "Ya existe una Caja de Ahorro en esa moneda para este cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                    mostrarError("Ya existe una Caja de Ahorro en esa moneda para este cliente.");
                     return;
                 }
                 CajaAhorro ca = new CajaAhorro(m, cliente.getCuit());
                 cuentaService.registrarCuenta(ca);
+                cliente.agregarCuenta(ca);
                 identificadorGenerado = ca.getCbu();
+
             } else if (tipo.equals("CuentaCorriente")) {
                 Moneda m = (Moneda) comboMoneda.getSelectedItem();
-                boolean existe = cuentasCliente.stream().anyMatch(c -> c instanceof CuentaCorriente && ((CuentaCorriente)c).getMoneda() == m);
+                boolean existe = cuentasCliente.stream().anyMatch(c -> c instanceof CuentaCorriente && ((CuentaCorriente) c).getMoneda() == m);
                 if (existe) {
-                    JOptionPane.showMessageDialog(this, "Ya existe una Cuenta Corriente en esa moneda para este cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                    mostrarError("Ya existe una Cuenta Corriente en esa moneda para este cliente.");
                     return;
                 }
                 String descText = campoDescubierto.getText().trim();
                 if (descText.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "El campo Descubierto no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+                    mostrarError("El campo Descubierto no puede estar vacío.");
                     return;
                 }
                 double descubierto;
                 try {
                     descubierto = Double.parseDouble(descText);
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "El campo Descubierto debe ser numérico.", "Error", JOptionPane.ERROR_MESSAGE);
+                    mostrarError("El campo Descubierto debe ser numérico.");
                     return;
                 }
                 CuentaCorriente cc = new CuentaCorriente(m, cliente.getCuit(), descubierto);
                 cuentaService.registrarCuenta(cc);
+                cliente.agregarCuenta(cc);
                 identificadorGenerado = cc.getCbu();
+
             } else if (tipo.equals("Wallet")) {
                 Cripto c = (Cripto) comboCripto.getSelectedItem();
-                boolean existe = cuentasCliente.stream().anyMatch(cu -> cu instanceof Wallet && ((Wallet)cu).getCripto() == c);
+                boolean existe = cuentasCliente.stream().anyMatch(cu -> cu instanceof Wallet && ((Wallet) cu).getCripto() == c);
                 if (existe) {
-                    JOptionPane.showMessageDialog(this, "Ya existe una Wallet para esa cripto para este cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                    mostrarError("Ya existe una Wallet para esa cripto para este cliente.");
                     return;
                 }
-                Wallet w = new Wallet(c);
+                Wallet w = new Wallet(c, cliente.getCuit());
                 cuentaService.registrarCuenta(w);
+                cliente.agregarCuenta(w);
                 identificadorGenerado = w.getDireccion();
             }
 
@@ -108,7 +152,11 @@ public class NuevaCuentaFrame extends JFrame {
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            mostrarError("Error: " + ex.getMessage());
         }
+    }
+
+    private void mostrarError(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 }

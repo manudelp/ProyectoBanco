@@ -46,13 +46,20 @@ public class TransaccionService implements ITransaccionService {
         cuentaDAO.guardar(origen);
         cuentaDAO.guardar(destino);
 
+        String moneda = origen instanceof CajaAhorro ? ((CajaAhorro) origen).getMoneda().name() :
+                origen instanceof CuentaCorriente ? ((CuentaCorriente) origen).getMoneda().name() :
+                        origen instanceof Wallet ? ((Wallet) origen).getCripto().name() :
+                                "DESCONOCIDO";
+
         Transaccion t = new Transaccion(
                 origen.getIdentificador(),
                 destino.getIdentificador(),
                 monto,
+                moneda,
                 Transaccion.Tipo.CONVERSION,
                 cuitCliente != null ? cuitCliente : "DESCONOCIDO"
         );
+
         transaccionDAO.guardar(t);
     }
 
@@ -99,7 +106,6 @@ public class TransaccionService implements ITransaccionService {
         cuentaDAO.guardar(origen);
         cuentaDAO.guardar(destino);
 
-        // Obtener CUIT del origen si es una cuenta bancaria
         String cuit = null;
         if (origen instanceof CajaAhorro) {
             cuit = ((CajaAhorro) origen).getCuit();
@@ -107,14 +113,23 @@ public class TransaccionService implements ITransaccionService {
             cuit = ((CuentaCorriente) origen).getCuit();
         }
 
-        // Crear y registrar transacción con nuevo constructor
-        Transaccion t = new Transaccion(
+        Transaccion t = crearTransaccion(origen, destino, monto, Transaccion.Tipo.TRANSFERENCIA, cuit);
+        transaccionDAO.guardar(t);
+    }
+
+    private Transaccion crearTransaccion(Cuenta origen, Cuenta destino, double monto, Transaccion.Tipo tipo, String cuit) {
+        String moneda = origen instanceof CajaAhorro ? ((CajaAhorro) origen).getMoneda().name() :
+                origen instanceof CuentaCorriente ? ((CuentaCorriente) origen).getMoneda().name() :
+                        origen instanceof Wallet ? ((Wallet) origen).getCripto().name() :
+                                "DESCONOCIDO";
+
+        return new Transaccion(
                 origen.getIdentificador(),
                 destino.getIdentificador(),
                 monto,
-                Transaccion.Tipo.TRANSFERENCIA,
+                moneda,
+                tipo,
                 cuit != null ? cuit : "DESCONOCIDO"
         );
-        transaccionDAO.guardar(t);
     }
 }

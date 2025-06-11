@@ -7,8 +7,8 @@ public class TestConversion {
             // Crear cuentas con constructores válidos
             CajaAhorro cajaAhorro = new CajaAhorro(100000.0, Moneda.ARS, "1234567890", "20-12345678-9");
             CuentaCorriente cuentaDolar = new CuentaCorriente(0.0, Moneda.USD, "9876543210", "20-12345678-9", 500.0);
-            Wallet walletBtc = new Wallet(1.0, "1BTCAddress", Cripto.BTC);
-            Wallet walletEth = new Wallet(0.0, "1ETHAddress", Cripto.ETH);
+            Wallet walletBtc = new Wallet(1.0, "WALLET-BTC-1", Cripto.BTC, "20-12345678-9");
+            Wallet walletEth = new Wallet(0.0, "WALLET-ETH-1", Cripto.ETH, "20-12345678-9");
 
             Conversor conversor = new Conversor();
 

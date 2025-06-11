@@ -16,12 +16,25 @@ public class Transaccion implements Serializable {
     private final LocalDateTime fecha;
     private final Tipo tipo;
     private final String cuitCliente;
+    private final String moneda;
 
-    public Transaccion(String origen, String destino, double monto, Tipo tipo, String cuitCliente) {
+    public Transaccion(String origen, String destino, double monto, String moneda, Tipo tipo, String cuitCliente) {
         this.origen = origen;
         this.destino = destino;
         this.monto = monto;
+        this.moneda = moneda;
         this.fecha = LocalDateTime.now();
+        this.tipo = tipo;
+        this.cuitCliente = cuitCliente;
+    }
+
+    // Para pruebas
+    public Transaccion(String origen, String destino, double monto, String moneda, Tipo tipo, String cuitCliente, LocalDateTime fecha) {
+        this.origen = origen;
+        this.destino = destino;
+        this.monto = monto;
+        this.moneda = moneda;
+        this.fecha = fecha;
         this.tipo = tipo;
         this.cuitCliente = cuitCliente;
     }
@@ -48,5 +61,9 @@ public class Transaccion implements Serializable {
 
     public String getCuitCliente() {
         return cuitCliente;
+    }
+
+    public String getMoneda() {
+        return moneda;
     }
 }

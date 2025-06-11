@@ -25,15 +25,23 @@ public class ConversionFrame extends JFrame {
     private JButton botonConvertir;
 
     public ConversionFrame(Cliente cliente) {
-        super("Conversión - Cliente: " + cliente.getCuit());
+        super("Conversión");
         this.cliente = cliente;
         this.cuentaService = new CuentaService();
         this.transaccionService = new TransaccionService();
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(500, 250);
+        setSize(500, 330);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(5, 1, 5, 5));
+        setResizable(false);
+
+        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel info = new JPanel(new GridLayout(2, 1));
+        info.add(new JLabel("Cliente: " + cliente.getNombre() + " " + cliente.getApellido()));
+        info.add(new JLabel("CUIT: " + cliente.getCuit()));
+        panelPrincipal.add(info, BorderLayout.NORTH);
 
         comboOrigen = new JComboBox<>();
         comboDestino = new JComboBox<>();
@@ -42,15 +50,24 @@ public class ConversionFrame extends JFrame {
 
         cargarCuentas();
 
-        add(new JLabel("Cuenta Origen:"));
-        add(comboOrigen);
-        add(new JLabel("Cuenta Destino:"));
-        add(comboDestino);
-        add(new JLabel("Monto:"));
-        add(campoMonto);
-        add(botonConvertir);
+        JPanel formulario = new JPanel(new GridLayout(6, 1, 10, 10));
+        formulario.add(new JLabel("Cuenta Origen:"));
+        formulario.add(comboOrigen);
+        formulario.add(new JLabel("Cuenta Destino:"));
+        formulario.add(comboDestino);
+        formulario.add(new JLabel("Monto:"));
+        formulario.add(campoMonto);
 
+        panelPrincipal.add(formulario, BorderLayout.CENTER);
+
+        botonConvertir.setPreferredSize(new Dimension(120, 30));
         botonConvertir.addActionListener(e -> procesarConversion());
+
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        acciones.add(botonConvertir);
+        panelPrincipal.add(acciones, BorderLayout.SOUTH);
+
+        add(panelPrincipal);
     }
 
     private void cargarCuentas() {
@@ -65,14 +82,10 @@ public class ConversionFrame extends JFrame {
         Cuenta origen = (Cuenta) comboOrigen.getSelectedItem();
         Cuenta destino = (Cuenta) comboDestino.getSelectedItem();
         String montoTexto = campoMonto.getText().trim();
-
         try {
             double monto = Double.parseDouble(montoTexto);
             if (monto <= 0) throw new NumberFormatException();
-            if (origen.equals(destino)) {
-                throw new IllegalArgumentException("No se puede convertir entre la misma cuenta.");
-            }
-            // Toda la lógica delegada al servicio
+            if (origen.equals(destino)) throw new IllegalArgumentException("No se puede convertir entre la misma cuenta.");
             transaccionService.convertir(origen, destino, monto, cliente.getCuit());
             JOptionPane.showMessageDialog(this, "Conversión exitosa.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             dispose();

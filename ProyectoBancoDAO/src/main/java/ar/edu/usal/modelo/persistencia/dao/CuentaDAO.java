@@ -10,6 +10,5 @@ public interface CuentaDAO {
     void actualizar(Cuenta cuenta);
     List<Cuenta> buscarPorCuit(String cuit);
     Cuenta buscarPorCbu(String cbu);
-    Cuenta buscarPorDireccion(String direccion);
     List<Cuenta> leerTodo();
 }

@@ -52,4 +52,9 @@ public class CajaAhorro extends Cuenta {
     public String toString() {
         return String.format("[CajaAhorro] %s - Saldo: %.2f %s", cbu, saldo, moneda);
     }
+
+    @Override
+    public String getTipo() {
+        return moneda.name();
+    }
 }

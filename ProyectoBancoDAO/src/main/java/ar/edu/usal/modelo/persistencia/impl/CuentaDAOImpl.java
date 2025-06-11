@@ -58,7 +58,7 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
                 } else if ("CC".equals(d[0])) {
                     lista.add(new CuentaCorriente(Double.parseDouble(d[1]), Moneda.valueOf(d[2]), d[3], d[4], Double.parseDouble(d[5])));
                 } else if ("WALLET".equals(d[0])) {
-                    lista.add(new Wallet(Double.parseDouble(d[1]), d[2], Cripto.valueOf(d[3])));
+                    lista.add(new Wallet(Double.parseDouble(d[1]), d[2], Cripto.valueOf(d[3]), d[4]));
                 }
             }
         } catch (IOException e) {
@@ -77,6 +77,9 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
             } else if (cuenta instanceof CuentaCorriente) {
                 CuentaCorriente cc = (CuentaCorriente) cuenta;
                 if (cc.getCuit().equals(cuit)) resultado.add(cc);
+            } else if (cuenta instanceof Wallet) {
+                Wallet w = (Wallet) cuenta;
+                if (w.getCuit().equals(cuit)) resultado.add(w);
             }
         }
         return resultado;
@@ -96,17 +99,6 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
         return null;
     }
 
-    @Override
-    public Cuenta buscarPorDireccion(String direccion) {
-        for (Cuenta cuenta : leerTodo()) {
-            if (cuenta instanceof Wallet) {
-                Wallet w = (Wallet) cuenta;
-                if (w.getDireccion().equals(direccion)) return w;
-            }
-        }
-        return null;
-    }
-
     private String serializarCuenta(Cuenta cuenta) {
         if (cuenta instanceof CajaAhorro) {
             CajaAhorro ca = (CajaAhorro) cuenta;
@@ -116,7 +108,8 @@ public class CuentaDAOImpl extends GenericStringManager<Cuenta> implements Cuent
             return String.format("CC,%s,%s,%s,%s,%s", cc.getSaldo(), cc.getMoneda(), cc.getCbu(), cc.getCuit(), cc.getDescubierto());
         } else if (cuenta instanceof Wallet) {
             Wallet w = (Wallet) cuenta;
-            return String.format("WALLET,%s,%s,%s", w.getSaldo(), w.getDireccion(), w.getCripto());
+            // Incluye el cuit al serializar la Wallet
+            return String.format("WALLET,%s,%s,%s,%s", w.getSaldo(), w.getDireccion(), w.getCripto(), w.getCuit());
         }
         throw new IllegalArgumentException("Tipo de cuenta no reconocido");
     }

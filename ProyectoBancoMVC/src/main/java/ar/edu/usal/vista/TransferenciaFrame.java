@@ -23,17 +23,30 @@ public class TransferenciaFrame extends JFrame {
     private JTextField campoMonto;
     private JButton botonTransferir;
 
+    private List<Cuenta> todasLasCuentas;
+    private List<Cuenta> cuentasPropias;
+
     public TransferenciaFrame(Cliente cliente) {
-        super("Transferencia - Cliente: " + cliente.getCuit());
+        super("Transferencia");
         this.cliente = cliente;
         this.cuentaService = new CuentaService();
         this.transaccionService = new TransaccionService();
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(500, 250);
+        setSize(500, 350);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(5, 1, 5, 5));
+        setResizable(false);
 
+        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Panel cliente
+        JPanel info = new JPanel(new GridLayout(2, 1));
+        info.add(new JLabel("Cliente: " + cliente.getNombre() + " " + cliente.getApellido()));
+        info.add(new JLabel("CUIT: " + cliente.getCuit()));
+        panelPrincipal.add(info, BorderLayout.NORTH);
+
+        // Cuentas y monto
         comboOrigen = new JComboBox<>();
         comboDestino = new JComboBox<>();
         campoMonto = new JTextField();
@@ -41,26 +54,59 @@ public class TransferenciaFrame extends JFrame {
 
         cargarCuentas();
 
-        add(new JLabel("Cuenta Origen:"));
-        add(comboOrigen);
-        add(new JLabel("Cuenta Destino:"));
-        add(comboDestino);
-        add(new JLabel("Monto:"));
-        add(campoMonto);
-        add(botonTransferir);
+        comboOrigen.addActionListener(e -> filtrarDestinosPorTipo());
 
+        JPanel formulario = new JPanel(new GridLayout(6, 1, 10, 10));
+        formulario.add(new JLabel("Cuenta Origen:"));
+        formulario.add(comboOrigen);
+        formulario.add(new JLabel("Cuenta Destino:"));
+        formulario.add(comboDestino);
+        formulario.add(new JLabel("Monto:"));
+        formulario.add(campoMonto);
+
+        // Panel central extendido con tip explicativo
+        JPanel centroExtendido = new JPanel(new BorderLayout(5, 5));
+        centroExtendido.add(formulario, BorderLayout.CENTER);
+
+        JLabel tip = new JLabel("Solo se pueden transferir fondos entre cuentas con la misma moneda.");
+        tip.setFont(new Font("SansSerif", Font.ITALIC, 11));
+        tip.setForeground(Color.DARK_GRAY);
+        centroExtendido.add(tip, BorderLayout.SOUTH);
+
+        panelPrincipal.add(centroExtendido, BorderLayout.CENTER);
+
+        botonTransferir.setPreferredSize(new Dimension(120, 30));
         botonTransferir.addActionListener(e -> procesarTransferencia());
+
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        acciones.add(botonTransferir);
+        panelPrincipal.add(acciones, BorderLayout.SOUTH);
+
+        add(panelPrincipal);
     }
 
     private void cargarCuentas() {
-        List<Cuenta> cuentas = cuentaService.listarTodas();
-        for (Cuenta c : cuentas) {
-            comboDestino.addItem(c);
+        todasLasCuentas = cuentaService.listarTodas();
+        cuentasPropias = cuentaService.buscarPorCuit(cliente.getCuit());
+
+        comboOrigen.removeAllItems();
+        for (Cuenta c : cuentasPropias) {
+            comboOrigen.addItem(c);
         }
 
-        List<Cuenta> propias = cuentaService.buscarPorCuit(cliente.getCuit());
-        for (Cuenta c : propias) {
-            comboOrigen.addItem(c);
+        filtrarDestinosPorTipo();
+    }
+
+    private void filtrarDestinosPorTipo() {
+        Cuenta origen = (Cuenta) comboOrigen.getSelectedItem();
+        if (origen == null) return;
+
+        comboDestino.removeAllItems();
+        for (Cuenta c : todasLasCuentas) {
+            if (!c.getIdentificador().equals(origen.getIdentificador()) &&
+                    c.getTipo().equals(origen.getTipo())) {
+                comboDestino.addItem(c);
+            }
         }
     }
 
@@ -72,7 +118,6 @@ public class TransferenciaFrame extends JFrame {
         try {
             double monto = Double.parseDouble(montoTexto);
             if (monto <= 0) throw new NumberFormatException();
-
             if (origen.equals(destino)) {
                 throw new IllegalArgumentException("La cuenta origen y destino no pueden ser la misma.");
             }

@@ -22,22 +22,51 @@ public class RegisterFrame extends JFrame {
         super("Registro de Cliente");
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(400, 350);
+        setSize(450, 350);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(7, 2, 5, 5));
+        setResizable(false);
 
-        add(new JLabel("CUIT:")); add(campoCuit);
-        add(new JLabel("Nombre:")); add(campoNombre);
-        add(new JLabel("Apellido:")); add(campoApellido);
-        add(new JLabel("Teléfono:")); add(campoTelefono);
-        add(new JLabel("Email:")); add(campoEmail);
-        add(new JLabel("Domicilio:")); add(campoDomicilio);
-        add(new JLabel());
+        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titulo = new JLabel("Formulario de Registro", JLabel.CENTER);
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 16));
+        panelPrincipal.add(titulo, BorderLayout.NORTH);
+
+        JPanel formulario = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        agregarCampo(formulario, gbc, "CUIT:", campoCuit);
+        agregarCampo(formulario, gbc, "Nombre:", campoNombre);
+        agregarCampo(formulario, gbc, "Apellido:", campoApellido);
+        agregarCampo(formulario, gbc, "Teléfono:", campoTelefono);
+        agregarCampo(formulario, gbc, "Email:", campoEmail);
+        agregarCampo(formulario, gbc, "Domicilio:", campoDomicilio);
+
+        panelPrincipal.add(formulario, BorderLayout.CENTER);
 
         JButton botonRegistrar = new JButton("Registrar");
-        add(botonRegistrar);
-
         botonRegistrar.addActionListener(e -> registrarCliente());
+
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        acciones.add(botonRegistrar);
+        panelPrincipal.add(acciones, BorderLayout.SOUTH);
+
+        add(panelPrincipal);
+    }
+
+    private void agregarCampo(JPanel panel, GridBagConstraints gbc, String etiqueta, JTextField campo) {
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        panel.add(new JLabel(etiqueta), gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        panel.add(campo, gbc);
+        gbc.gridy++;
     }
 
     private void registrarCliente() {
@@ -48,7 +77,8 @@ public class RegisterFrame extends JFrame {
         String email = campoEmail.getText().trim();
         String domicilio = campoDomicilio.getText().trim();
 
-        if (cuit.isEmpty() || nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || email.isEmpty() || domicilio.isEmpty()) {
+        if (cuit.isEmpty() || nombre.isEmpty() || apellido.isEmpty() ||
+                telefono.isEmpty() || email.isEmpty() || domicilio.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -60,7 +90,11 @@ public class RegisterFrame extends JFrame {
 
         Cliente cliente = new Cliente(cuit, nombre, apellido, telefono, email, domicilio);
         clienteService.registrarCliente(cliente);
-        JOptionPane.showMessageDialog(this, "Registro exitoso. Ahora puede iniciar sesión.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        JOptionPane.showMessageDialog(this,
+                "Registro exitoso. Ahora puede iniciar sesión.",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
         dispose();
         new LoginFrame().setVisible(true);
     }

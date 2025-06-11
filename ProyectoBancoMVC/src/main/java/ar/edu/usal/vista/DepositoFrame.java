@@ -1,8 +1,6 @@
 package ar.edu.usal.vista;
 
-import ar.edu.usal.modelo.entidades.Cliente;
-import ar.edu.usal.modelo.entidades.Cuenta;
-import ar.edu.usal.modelo.entidades.Transaccion;
+import ar.edu.usal.modelo.entidades.*;
 import ar.edu.usal.servicios.ICuentaService;
 import ar.edu.usal.servicios.ITransaccionService;
 import ar.edu.usal.servicios.impl.CuentaService;
@@ -16,41 +14,58 @@ public class DepositoFrame extends JFrame {
 
     private final Cliente cliente;
     private final ICuentaService cuentaService;
-    private final ITransaccionService transaccionService = new TransaccionService();
+    private final ITransaccionService transaccionService;
 
     private JComboBox<Cuenta> comboCuentas;
     private JTextField campoMonto;
     private JButton botonDepositar;
 
     public DepositoFrame(Cliente cliente) {
-        super("Depósito - Cliente: " + cliente.getCuit());
+        super("Depósito");
         this.cliente = cliente;
         this.cuentaService = new CuentaService();
+        this.transaccionService = new TransaccionService();
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(400, 200);
+        setSize(450, 300);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(4, 1, 5, 5));
+        setResizable(false);
 
+        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel info = new JPanel(new GridLayout(2, 1));
+        info.add(new JLabel("Cliente: " + cliente.getNombre() + " " + cliente.getApellido()));
+        info.add(new JLabel("CUIT: " + cliente.getCuit()));
+        panelPrincipal.add(info, BorderLayout.NORTH);
+
+        JPanel formulario = new JPanel(new GridLayout(4, 1, 10, 10));
         comboCuentas = new JComboBox<>();
         cargarCuentas();
-
         campoMonto = new JTextField();
+
+        formulario.add(new JLabel("Seleccionar cuenta:"));
+        formulario.add(comboCuentas);
+        formulario.add(new JLabel("Monto a depositar:"));
+        formulario.add(campoMonto);
+
+        panelPrincipal.add(formulario, BorderLayout.CENTER);
+
         botonDepositar = new JButton("Depositar");
-
-        add(new JLabel("Seleccionar cuenta:"));
-        add(comboCuentas);
-        add(new JLabel("Monto a depositar:"));
-        add(campoMonto);
-        add(botonDepositar);
-
+        botonDepositar.setPreferredSize(new Dimension(120, 30));
         botonDepositar.addActionListener(e -> procesarDeposito());
+
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        acciones.add(botonDepositar);
+        panelPrincipal.add(acciones, BorderLayout.SOUTH);
+
+        add(panelPrincipal);
     }
 
     private void cargarCuentas() {
         List<Cuenta> cuentas = cuentaService.buscarPorCuit(cliente.getCuit());
-        for (Cuenta c : cuentas) {
-            comboCuentas.addItem(c);
+        for (Cuenta cuenta : cuentas) {
+            comboCuentas.addItem(cuenta);
         }
     }
 
@@ -61,17 +76,23 @@ public class DepositoFrame extends JFrame {
         try {
             double monto = Double.parseDouble(montoTexto);
             if (monto <= 0) throw new NumberFormatException();
+
             cuenta.depositar(monto);
             cuentaService.actualizarCuenta(cuenta);
-            // Registrar transacción
+
             Transaccion transaccion = new Transaccion(
                     cuenta.getIdentificador(),
                     "DEPOSITO",
                     monto,
+                    cuenta instanceof CajaAhorro ? ((CajaAhorro) cuenta).getMoneda().name() :
+                            cuenta instanceof CuentaCorriente ? ((CuentaCorriente) cuenta).getMoneda().name() :
+                                    cuenta instanceof Wallet ? ((Wallet) cuenta).getCripto().name() :
+                                            "DESCONOCIDO",
                     Transaccion.Tipo.DEPOSITO,
                     cliente.getCuit()
             );
             transaccionService.registrar(transaccion);
+
             JOptionPane.showMessageDialog(this, "Depósito exitoso.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } catch (NumberFormatException ex) {

@@ -63,4 +63,9 @@ public class CuentaCorriente extends Cuenta {
     public String toString() {
         return String.format("[CuentaCorriente] %s - Saldo: %.2f %s", cbu, saldo, moneda);
     }
+
+    @Override
+    public String getTipo() {
+        return moneda.name();
+    }
 }

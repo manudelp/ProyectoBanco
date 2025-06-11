@@ -33,4 +33,5 @@ public abstract class Cuenta implements Serializable {
         this.saldo = saldo;
     }
 
+    public abstract String getTipo();
 }
